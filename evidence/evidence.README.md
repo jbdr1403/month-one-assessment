@@ -1,234 +1,266 @@
 ---
 
-# **📸 Evidence – TechCorp Infrastructure**
+# **TechCorp AWS Infrastructure – Terraform Deployment**
 
-![Terraform](https://img.shields.io/badge/Terraform-IaC-7B42BC?style=for-the-badge\&logo=terraform)
-![AWS](https://img.shields.io/badge/AWS-Infrastructure-orange?style=for-the-badge\&logo=amazon-aws)
-![Verification](https://img.shields.io/badge/Status-Verified_Screenshots-success?style=for-the-badge)
-![Assessment](https://img.shields.io/badge/AltSchool-Assessment-blue?style=for-the-badge)
-
-```
-============================================================
-        T E C H C O R P   C L O U D   I N F R A S T R U C T U R E
-                      E V I D E N C E   D O C U M E N T A T I O N
-============================================================
-```
-
-This folder contains **all required screenshots** for the AltSchool Cloud Engineering Month-One Assessment.
-Each screenshot directly maps to the infrastructure resource or verification step described in the assessment document.
+![Terraform](https://img.shields.io/badge/Terraform-IaC-7B42BC?style=for-the-badge&logo=terraform)
+![AWS](https://img.shields.io/badge/AWS-Cloud-orange?style=for-the-badge&logo=amazon-aws)
+![Status](https://img.shields.io/badge/Environment-Ready-success?style=for-the-badge)
+![AltSchool](https://img.shields.io/badge/AltSchool-Assessment-blue?style=for-the-badge)
 
 ---
 
-# **🗂️ Evidence Sections**
+This repository contains the complete **Infrastructure-as-Code** configuration for deploying TechCorp’s highly available, securely segmented, multi-tier application environment on AWS.
+
+The goal is to demonstrate practical engineering ability in:
+
+- VPC design & subnetting
+- Multi-AZ resilience
+- Secure access patterns
+- Automated provisioning via Terraform
+- EC2 bootstrapping (Apache, PostgreSQL)
+- Load balancing and health checks
+- Infrastructure lifecycle management
+
+---
 
 ```
-+-----------------------------------------------------------+
-| 1. Terraform Outputs                                      |
-| 2. AWS Networking                                         |
-| 3. EC2 Instances                                          |
-| 4. Application Load Balancer                              |
-| 5. SSH Access Path Verification                           |
-| 6. Application-Level Validation                           |
-| 7. End-to-End ALB Testing                                 |
-+-----------------------------------------------------------+
+====================================================
+   T E C H C O R P   C L O U D   A R C H I T E C T U R E
+====================================================
 ```
 
 ---
 
-# **1. Terraform Outputs**
+## **📘 Table of Contents**
 
-### ✔ terraform plan
+- [Architecture Overview](#architecture-overview)
+- [Assessment Requirements Coverage](#assessment-requirements-coverage)
+- [Prerequisites](#prerequisites)
+- [Project Structure](#project-structure)
+- [Configuration Variables](#configuration-variables)
+- [Deployment Steps](#deployment-steps)
+- [Testing the Infrastructure](#testing-the-infrastructure)
+- [Cleanup / Destroying Resources](#cleanup--destroying-resources)
+- [Evidence](#evidence)
 
-![Terraform Plan](./terraform_plan.png)
+---
 
-### ✔ terraform apply
+## **🏗️ Architecture Overview**
 
-![Terraform Apply](./terraform_apply.png)
+### **Network Layer**
+
+- VPC: `10.0.0.0/16` with DNS hostnames enabled
+- Public Subnets: `10.0.1.0/24`, `10.0.2.0/24`
+- Private Subnets: `10.0.3.0/24`, `10.0.4.0/24`
+- Internet Gateway
+- NAT Gateways (one per public subnet)
+- Public & Private Route Tables
+- Network ACLs
+
+### **Compute Layer**
+
+- **Bastion Host**
+- **Two Web Servers** with Apache + instance-ID page
+- **Database Server** with PostgreSQL installed via user-data
+
+### **Application Load Balancer**
+
+- ALB across both public subnets
+- HTTP listener
+- Health checks for target group
+
+### **Security Controls**
+
+- Bastion SG → SSH from your IP
+- Web SG → HTTP/HTTPS, SSH from Bastion
+- DB SG → PostgreSQL (5432) from Web SG
+
+---
+
+## **📋 Assessment Requirements Coverage**
+
+| Requirement                | Status |
+| -------------------------- | ------ |
+| Multi-AZ Architecture      | ✅     |
+| Public & Private Subnets   | ✅     |
+| NAT Gateways               | ✅     |
+| Bastion Host               | ✅     |
+| Web Servers + Apache       | ✅     |
+| DB Server + PostgreSQL     | ✅     |
+| ALB + Target Group         | ✅     |
+| SSH via Bastion → Web → DB | ✅     |
+| Connect to PostgreSQL      | ✅     |
+| Evidence Folder            | ✅     |
+| Full README                | ✅     |
+
+---
 
 ```
----------------------------------------------
-| terraform plan → infrastructure preview   |
-| terraform apply → successful deployment   |
----------------------------------------------
+====================================================
+                 P R E R E Q U I S I T E S
+====================================================
 ```
 
 ---
 
-# **2. AWS Networking**
+## **🛠️ Prerequisites**
 
-Covers the VPC topology, subnets, and routing configuration.
+- Terraform ≥ 1.5
+- AWS CLI configured
+- Existing Key Pair
+- Public IP address (`curl ifconfig.me`)
+- IAM permissions for EC2, VPC, ELB
 
-### ✔ VPC
+---
 
-![VPC](./vpc.png)
-
-### ✔ Subnets
-
-![Subnets](./subnets.png)
-
-### ✔ NAT Gateways
-
-![NAT Gateways](./NAT_gateway.png)
-
-### ✔ Internet Gateway
-
-![Internet Gateway](./igw.png)
-
-### ✔ Route Tables
-
-![Route Tables](./route_table.png)
+## **📦 Project Structure**
 
 ```
--------------------------------------------------------
-| Required Network Artifacts Verified in the Console:  |
-|  - 1 VPC                                             |
-|  - 2 Public Subnets                                  |
-|  - 2 Private Subnets                                 |
-|  - 2 NAT Gateways                                    |
-|  - 1 Internet Gateway                                |
-|  - Correctly Associated Route Tables                 |
--------------------------------------------------------
+terraform-assessment/
+│
+├── main.tf
+├── variables.tf
+├── outputs.tf
+├── terraform.tfvars.example
+│
+├── user_data/
+│   ├── web_server_setup.sh
+│   └── db_server_setup.sh
+│
+├── evidence/
+│   ├── *.png
+│   └── README.md
+│
+└── README.md
 ```
 
 ---
 
-# **3. EC2 Instances**
+## **📝 Configuration Variables**
 
-### ✔ Bastion Host
+Copy:
 
-![Bastion](./bastion_ec2.png)
-
-### ✔ Web Servers 1
-
-![Web 1](./web_server_1_ec2.png)
-
-### ✔ Web Server 2
-
-![Web 2](./web_server_2_ec2.png)
-
-### ✔ Database Server
-
-![Database](./db_ec2.png)
-
+```bash
+cp terraform.tfvars.example terraform.tfvars
 ```
----------------------------------------------------------
-| Fully Provisioned Compute Layer:                      |
-|  - Bastion (public subnet)                            |
-|  - Web Servers (private subnets across AZs)           |
-|  - Database Server (private subnet)                   |
----------------------------------------------------------
+
+Modify:
+
+```hcl
+region  = "us-west-2"
+key_pair_name = "mynew_instance"
+my_ip   = "YOUR_PUBLIC_IP/32"
+
+bastion_instance_type = "t3.micro"
+web_instance_type     = "t3.micro"
+db_instance_type      = "t3.small"
+azs = ["us-west-2a", "us-west-2b"]
 ```
 
 ---
 
-# **4. Application Load Balancer**
-
-### ✔ Application Load Balancer
-
-![ALB](./alb.png)
-
-### ✔ Target Group (healthy instances)
-
-![Target Group](./target_grps.png)
-
 ```
-------------------------------------------------------
-| ALB correctly distributing traffic across web tier |
-| Target group health checks reporting 'healthy'     |
-------------------------------------------------------
+====================================================
+             D E P L O Y M E N T   S T E P S
+====================================================
 ```
 
 ---
 
-# **5. SSH Access Path Verification**
+## **🚀 Deployment Steps**
 
-### ✔ SSH into Bastion from Local Machine
+```bash
+terraform init
+terraform fmt
+terraform validate
+terraform plan
+terraform apply
+```
 
-![SSH Bastion](./bastion_host.png)
+Approve with **yes**.
 
-### ✔ SSH from Bastion → Web Servers → DB Server
-
-![SSH Web](./web_db_servers.png)
+---
 
 ```
--------------------------------------------------------------
-|  Verified Multi-Hop SSH Access Path (Best Practice)        |
-|  Local → Bastion → Web Server / DB Server (Private Subnet)|
--------------------------------------------------------------
+====================================================
+           T E S T I N G   T H E   S T A C K
+====================================================
 ```
 
 ---
 
-# **6. Application-Level Validation**
+## **🔍 Testing**
 
-### ✔ Apache running on Web Servers
+### **1. SSH into Bastion**
 
-![Apache Curl](./alb_1.png)
-![Apache Curl](./alb_2.png)
-
-### ✔ PostgreSQL running on DB Server
-
-![Postgres Service](./postgres_running.png)
-
-### ✔ Connected to PostgreSQL (`postgres=#`)
-
-![Postgres Shell](./postgres_connected.png)
-
-```
------------------------------------------------------------
-| Automation Validated:                                   |
-|  - Apache auto-installed on web servers via user_data   |
-|  - PostgreSQL auto-installed on DB via user_data        |
-|  - Successful DB shell access (`postgres=#`)            |
------------------------------------------------------------
+```bash
+ssh -i ~/.ssh/<key>.pem ec2-user@<bastion_public_ip>
 ```
 
----
+### **2. SSH from Bastion → Web Servers**
 
-# **7. Load Balancer Test**
-
-### ✔ ALB DNS output – Web Server 1
-
-![ALB WS1](./alb-webserver1.png)
-
-### ✔ ALB DNS output – Web Server 2
-
-![ALB WS2](./alb-webserver2.png)
-
-```
-----------------------------------------------------------------
-| ALB test confirms high availability and correct target flow   |
-| Traffic alternates between Web Server 1 and Web Server 2      |
-----------------------------------------------------------------
+```bash
+ssh ec2-user@10.0.3.33
+ssh ec2-user@10.0.4.250
 ```
 
----
+Check Apache:
 
-# **📁 Final Instruction**
+```bash
+curl localhost
+```
 
-Place each screenshot in this folder using the exact filenames listed above.
-This ensures the reviewers can quickly confirm:
+### **3. SSH from Bastion → DB Server**
 
-- Infrastructure correctness
-- Security controls
-- Automation behavior
-- Network access
-- Service availability
+```bash
+ssh ec2-user@<db_ip>
+```
+
+Check PostgreSQL:
+
+```bash
+sudo systemctl status postgresql
+sudo -u postgres psql
+```
+
+Expect:
 
 ```
-============================================================
-            E N D   O F   E V I D E N C E   D O C
-============================================================
+postgres=#
+```
+
+### **4. Test Load Balancer**
+
+Open:
+
+```
+http://<alb_dns_name>
 ```
 
 ---
 
-If you'd like, I can also:
+```
+====================================================
+                     C L E A N U P
+====================================================
+```
 
-✔ Validate your folder structure
-✔ Generate a badge-enhanced README for `/user_data`
-✔ Produce a CONTRIBUTING.md
-✔ Add a LICENSE file
-✔ Add a Terraform CI GitHub workflow
+---
 
-Just say **yes**.
+## **🧹 Destroy Everything**
+
+```bash
+terraform destroy
+```
+
+Approve with **yes**.
+
+---
+
+## **📸 Evidence**
+
+All screenshots are located in:
+
+👉 **[evidence/](./evidence/)**
+
+---
