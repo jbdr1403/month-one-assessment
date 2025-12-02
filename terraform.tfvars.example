@@ -1,0 +1,6 @@
+region             = "eu-west-2"
+bastion_instance_type = "t3.micro"
+web_instance_type     = "t3.micro"
+db_instance_type      = "t3.small"
+key_pair_name         = "my-key-pair"
+my_ip                 = "1.2.3.4/32"
