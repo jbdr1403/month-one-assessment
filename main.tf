@@ -13,6 +13,7 @@ provider "aws" {
   region = var.region
 }
 
+
 # --------------------
 # VPC
 # --------------------
@@ -433,6 +434,8 @@ resource "aws_instance" "web_server_1" {
   vpc_security_group_ids = [aws_security_group.web_sg.id]
   key_name               = var.key_pair_name
   user_data              = file("user_data/web_server_setup.sh")
+  depends_on             = [aws_nat_gateway.nat_gw_1]
+
 
   tags = {
     Name = "techcorp-web-server-1"
@@ -446,6 +449,8 @@ resource "aws_instance" "web_server_2" {
   vpc_security_group_ids = [aws_security_group.web_sg.id]
   key_name               = var.key_pair_name
   user_data              = file("user_data/web_server_setup.sh")
+  depends_on             = [aws_nat_gateway.nat_gw_2]
+
 
   tags = {
     Name = "techcorp-web-server-2"

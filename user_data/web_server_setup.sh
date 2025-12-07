@@ -4,11 +4,16 @@ exec > /var/log/user-data.log 2>&1
 
 echo "Starting Apache installation..."
 
-# Update system packages
-yum update -y
+# Retry yum until NAT gateway is ready and yum works
+until yum update -y; do
+  echo "YUM update failed -- retrying in 5 seconds..."
+  sleep 5
+done
 
-# Install Apache web server
-yum install -y httpd
+until yum install -y httpd; do
+  echo "YUM install failed -- retrying in 5 seconds..."
+  sleep 5
+done
 
 # Enable and start Apache
 systemctl enable httpd
@@ -32,3 +37,4 @@ cat <<EOF > /var/www/html/index.html
 EOF
 
 echo "Apache setup complete!"
+# End of script
